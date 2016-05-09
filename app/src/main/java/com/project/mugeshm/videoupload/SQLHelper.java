@@ -2,6 +2,7 @@ package com.project.mugeshm.videoupload;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -31,13 +32,17 @@ public class SQLHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertContact  (String filename)
+    public boolean insertrow  (String filename)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("filename", filename);
-        db.insert("contacts", null, contentValues);
+        db.insert(TABLE_NAME, null, contentValues);
         return true;
     }
-
+    public int numberOfRows(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        int numRows = (int) DatabaseUtils.queryNumEntries(db, TABLE_NAME);
+        return numRows;
+    }
 }

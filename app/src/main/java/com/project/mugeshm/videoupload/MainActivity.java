@@ -1,16 +1,13 @@
 package com.project.mugeshm.videoupload;
-
+/**
+ * Created by MugeshM on 5/9/2016.
+ */
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Path;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Environment;
-import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,25 +22,15 @@ import android.widget.Toast;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
     SQLHelper sqlhelper;
     private static final int REQUEST_TAKE_GALLERY_VIDEO = 0;
-    String filemanagerstring="";
+    //String filemanagerstring="";
     String selectedpath="";
     TextView tv;
     Button bt,bt2;
@@ -97,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setImageBitmap(bitmap);
                 Toast.makeText(getBaseContext(),"Bitmap",Toast.LENGTH_LONG).show();
                 // OI FILE Manager
-                filemanagerstring = selectedImageUri.getPath();
+               // filemanagerstring = selectedImageUri.getPath();
 
                 // MEDIA GALLERY
                 selectedpath = getPath(selectedImageUri);
@@ -162,7 +149,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] bytes) {
                 progress.dismiss();
-                tv.setText("Successfully uploaded");
+                sqlhelper.insertrow(selectedpath);
+                tv.setText("Successfully uploaded" + "\n Total number of videos uploaded : " + sqlhelper.numberOfRows());
                 // Toast.makeText(getBaseContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show();
                 Log.d("success", String.valueOf(statusCode));
 
