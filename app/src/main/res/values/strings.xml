@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Videoupload</string>
+    <string name="btntext">Choose File to upload</string>
+</resources>
