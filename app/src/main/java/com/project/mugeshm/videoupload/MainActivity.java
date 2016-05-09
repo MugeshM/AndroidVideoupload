@@ -6,7 +6,11 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Path;
+import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
+import android.os.PersistableBundle;
+import android.widget.MediaController;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -25,6 +30,10 @@ import com.loopj.android.http.RequestParams;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
+import java.util.Date;
+
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,7 +46,11 @@ public class MainActivity extends AppCompatActivity {
     private String filepath = null;
     ImageView imageView;
     FileInputStream fileInputStream = null;
-    ProgressDialog progress;
+    ProgressDialog progress,videoprogress;
+    String filenameinserver;
+    int position=0;
+    VideoView videoview;
+    MediaController mediaController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +60,14 @@ public class MainActivity extends AppCompatActivity {
         bt2=(Button)findViewById(R.id.button2);
         tv=(TextView)findViewById(R.id.textView);
         imageView=(ImageView)findViewById(R.id.imageView);
+        videoview=(VideoView)findViewById(R.id.videoview);
+        if (mediaController == null) {
+            mediaController = new MediaController(MainActivity.this);
+        }
+
+        videoview.setMediaController(mediaController);
+        videoview.requestFocus();
+        mediaController.setAnchorView(findViewById(R.id.videoview));
 
         sqlhelper=new SQLHelper(this);
 
@@ -73,6 +94,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        videoview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                videoprogress.dismiss();
+                videoview.seekTo(position);
+                if (position == 0) {
+                    //videoview.start();
+                } else {
+                    videoview.pause();
+                }
+            }
+        });
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
@@ -93,7 +126,12 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             }
+           /* if(selectedpath!=null) {
+                videoview.setVideoURI(Uri.parse(selectedpath));
+                videoview.setVisibility(View.GONE);
+            }*/
         }
+
     }
 
     // UPDATED!
@@ -140,17 +178,28 @@ public class MainActivity extends AppCompatActivity {
             public void onProgress(long bytesWritten, long totalSize) {
                 super.onProgress(bytesWritten, totalSize);
                 Log.d("progress", "pos: " + bytesWritten + " len: " + totalSize);
-                double percent=((double)bytesWritten/(double)totalSize)*100;
-                Log.d("percent", "" +percent);
-               // tv.setText(String.valueOf(percent));
+                double percent = ((double) bytesWritten / (double) totalSize) * 100;
+                Log.d("percent", "" + percent);
+                // tv.setText(String.valueOf(percent));
                 progress.setProgress((int) percent);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] bytes) {
                 progress.dismiss();
-                sqlhelper.insertrow(selectedpath);
+
                 tv.setText("Successfully uploaded" + "\n Total number of videos uploaded : " + sqlhelper.numberOfRows());
+
+                String str="";
+                try {
+                    str = new String(bytes, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                filenameinserver=str;
+                sqlhelper.insertrow(str);
+                loadvideo(filenameinserver);
+                //Toast.makeText(getBaseContext(),str,Toast.LENGTH_LONG).show();
                 // Toast.makeText(getBaseContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show();
                 Log.d("success", String.valueOf(statusCode));
 
@@ -169,6 +218,40 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    private void loadvideo(String fname) {
+        videoprogress = new ProgressDialog(MainActivity.this);
+        videoprogress.setTitle("Video from Server");
+        videoprogress.setMessage("Buffering...");
+        videoprogress.setIndeterminate(false);
+        videoprogress.setCancelable(false);
+        videoprogress.show();
+
+        /*String date=String.valueOf(System.currentTimeMillis());
+        File userFile = new File(selectedpath);
+        String filename = userFile.getName();*/
+        String url="http://192.168.0.123:3000/videos?name="+fname;
+        //String url="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4";
+        Toast.makeText(getBaseContext(), url, Toast.LENGTH_SHORT).show();
+        videoview.setVideoURI(Uri.parse(url));
+        //videoview.start();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putInt("Position", position);
+        videoview.pause();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        position = savedInstanceState.getInt("Position");
+        videoview.seekTo(position);
+    }
+
+
 }
 
 

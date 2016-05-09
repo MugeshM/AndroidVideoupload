@@ -35,10 +35,10 @@
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:id="@+id/imageView"
-        android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:src="@android:drawable/arrow_down_float" />
+        android:src="@android:drawable/arrow_down_float"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -50,5 +50,10 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
-
+<VideoView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/videoview"
+    android:layout_below="@+id/imageView"
+    android:layout_above="@+id/button2" />
 </RelativeLayout>
